@@ -1,98 +1,49 @@
 import {
-  Form,
+  isRouteErrorResponse,
+  Links,
+  Meta,
+  Outlet,
   Scripts,
   ScrollRestoration,
-  isRouteErrorResponse,
-  Outlet,
-  Link
 } from "react-router";
+
+import Header from "./components/header";
+
 import type { Route } from "./+types/root";
+import "./app.css";
 
-import appStylesHref from "./app.css?url";
-import { getContacts } from "./data";
 
-export async function clientLoader() {
-  const contacts = await getContacts();
-  return { contacts };
-}
+export const links: Route.LinksFunction = () => [
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  {
+    rel: "preconnect",
+    href: "https://fonts.gstatic.com",
+    crossOrigin: "anonymous",
+  },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+  },
+  {
+    rel: "stylesheet",
+    href:"./app.css"
+  },
+];
 
-export default function App({ loaderData }:Route.ComponentProps) {
-  const { contacts } = loaderData;
-  return (
-    <>
-      <div id="sidebar">
-        <h1>React Router Contacts</h1>
-        <div>
-          <Form id="search-form" role="search">
-            <input
-              aria-label="Search contacts"
-              id="q"
-              name="q"
-              placeholder="Search"
-              type="search"
-            />
-            <div aria-hidden hidden={true} id="search-spinner" />
-          </Form>
-          <Form method="post">
-            <button type="submit">New</button>
-          </Form>
-        </div>
-        <nav>
-        {contacts.length ? (
-            <ul>
-              {contacts.map((contact) => (
-                <li key={contact.id}>
-                  <Link to={`contacts/${contact.id}`}>
-                    {contact.first || contact.last ? (
-                      <>
-                        {contact.first} {contact.last}
-                      </>
-                    ) : (
-                      <i>No Name</i>
-                    )}
-                    {contact.favorite ? (
-                      <span>★</span>
-                    ) : null}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>
-              <i>No contacts</i>
-            </p>
-          )}
-        </nav>
-      </div>
-      <div id="detail">
-        <Outlet></Outlet>
-      </div>
-    </>
-  );
-}
-
-export function HydrateFallback() {
-  return <div id="loading-splash">
-    <div id="loading-splash-spinner">
-      
-    </div>
-    <p>Loading plese wait</p>
-  </div>
-}
-
-// The Layout component is a special export for the root route.
-// It acts as your document's "app shell" for all route components, HydrateFallback, and ErrorBoundary
-// For more information, see https://reactrouter.com/explanation/special-files#layout-export
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="stylesheet" href={appStylesHref} />
+        <Meta />
+        <Links />
       </head>
       <body>
-        {children}
+        <Header></Header>
+        <main>
+          {children}
+        </main>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -100,8 +51,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// The top most error boundary for the app, rendered when your app throws an error
-// For more information, see https://reactrouter.com/start/framework/route-module#errorboundary
+export default function App() {
+  return <Outlet />;
+}
+
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";
@@ -119,14 +72,22 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main id="error-page">
+    <main className="pt-16 p-4 container mx-auto">
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (
-        <pre>
+        <pre className="w-full p-4 overflow-x-auto">
           <code>{stack}</code>
         </pre>
       )}
     </main>
+  );
+}
+
+export function HydrateFallback() {
+  return (
+    <div id="loading-splash">
+      <div className="loader"></div>
+    </div>
   );
 }
